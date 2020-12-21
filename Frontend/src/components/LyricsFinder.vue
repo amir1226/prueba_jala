@@ -39,6 +39,13 @@
         </b-col>
       </b-row>
       <b-row class="justify-content-md-center mt-3">
+        <b-col class="mt-3">
+          <p class="h4" v-if="lyric !== ''">
+            Song has {{ words }} words and {{ lines }} lines
+          </p>
+        </b-col>
+      </b-row>
+      <b-row class="justify-content-md-center mt-3">
         <b-col sm="10">
           <div>
             <p class="h4">Translate</p>
@@ -46,9 +53,6 @@
             </b-form-textarea>
           </div>
         </b-col>
-      </b-row>
-      <b-row class="justify-content-md-center mt-3">
-        <translateFrame> </translateFrame>
       </b-row>
     </form>
   </div>
@@ -65,14 +69,46 @@ export default {
       song: "",
       lyric: "",
       translate: "",
+      words: 0,
+      lines: 0,
     };
   },
   methods: {
     findLyric() {
+      let theArtist = this.artist.toLowerCase();
+      let theSong = this.song.toLowerCase();
       axios
-        .get("https://api.lyrics.ovh/v1/" + this.artist + "/" + this.song)
+        .get("https://api.lyrics.ovh/v1/" + theArtist + "/" + theSong)
         .then((result) => {
           this.lyric = result.data.lyrics;
+          this.count_words_and_lines();
+        });
+    },
+    count_words_and_lines() {
+      let theLyric = this.lyric;
+      let send = {
+        text: theLyric,
+      };
+      axios.post("http://127.0.0.1:8000/stats", send).then((result) => {
+        this.words = result.data.words;
+        this.lines = result.data.lines;
+      });
+    },
+    translateLyric() {
+      let theArtist = this.artist.toLowerCase();
+      let theSong = this.song.toLowerCase();
+      let theLyric = this.lyric;
+
+      let send = {
+        artist: theArtist,
+        song: theSong,
+        foreignLyric: theLyric,
+      };
+
+      axios
+        .post("http://127.0.0.1:8000/translatelyric", send)
+        .then((result) => {
+          this.translate = result.data.translate;
         });
     },
   },

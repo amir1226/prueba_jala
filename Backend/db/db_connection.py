@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:16216afen@localhost:5433/Jalasoft"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:Admin123@localhost:5433/Jalasoft"
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
 # Creacion de la Sesion

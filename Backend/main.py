@@ -1,8 +1,8 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, APIRouter, HTTPException, FastAPI
 import requests
-from db.lyricsDB import database, lyricsDB
-from models.lyric_models import lyricIn
+from db.lyricsDB import lyricsDB, include_new, search_in_database, database
+from models.lyric_models import lyricIn, countIn, count_words_and_lines
 
 # Api information
 api_key = "a_ItVQVpy8n2JpN7SO382k7W0vMPV3O27WE9QQ0PXkAAAPDX9HEHRS5VJmcPuOPGzZoH2U0PglLUVbv2W0"
@@ -12,7 +12,7 @@ app = FastAPI()
 
 
 origins = [
-    "http://localhost", "http://localhost:8081",
+    "http://localhost", "http://localhost:8081", "http://localhost:8080"
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -30,9 +30,9 @@ async def root():
 
 @app.post("/translatelyric")
 async def translate(lyricFront: lyricIn):
-    for k in database:
-        if database[k][0] == lyricFront.artist and database[k][1] == lyricFront.song:
-            return {"traduccion": database[k][3]}
+    search_lyric = search_in_database(lyricFront)
+    if search_lyric:
+        return {"translate": search_lyric}
 
     data = lyricFront.foreignLyric
     BODY = {
@@ -52,14 +52,18 @@ async def translate(lyricFront: lyricIn):
             status_code=403, detail="Error: Can't contact Api translator")
 
     new_lyric = lyricsDB(**lyricFront.dict(), spanishLyric=translate)
-    max_key = max(list(database.keys()))
-    database[max_key+1] = new_lyric
+    include_new(new_lyric)
 
-    return {"traduccion": new_lyric.spanishLyric}
+    return {"translate": new_lyric.spanishLyric}
 
-    """ if len(session.query(lyricsDB).all()) > 0:
-         all_lyrics = session.query(lyricsDB).all()
-         for lyric in all_lyrics:
-             if lyric.artist == lyricFront.artist and lyric.artist == lyricFront.artist:
-                 return {"traduccion": lyric.spanishLyric}
-    """
+
+@app.post("/stats")
+async def translate(text: countIn):
+    count = count_words_and_lines(text)
+    return {"lines": count[0], "words": count[1]}
+
+"""
+@app.get("/database")
+async def obtain_database():
+    return database
+"""

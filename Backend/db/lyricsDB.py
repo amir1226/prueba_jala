@@ -1,6 +1,7 @@
 # from sqlalchemy import Column, ForeignKey, Integer, String
 # from db.db_connection import Base, engine
 from pydantic import BaseModel
+from typing import List
 
 
 class lyricsDB(BaseModel):
@@ -10,32 +11,22 @@ class lyricsDB(BaseModel):
     spanishLyric: str
 
 
-database = {
-    1: [lyricsDB(**{
-        "artist": "prueba",
-        "song": "prueba",
-        "foreignLyric": "prueba",
-        "spanishLyric": "prueba"
-    })],
-    2: [lyricsDB(**{
-        "artist": "Queen",
-        "song": "we will rock you",
-        "foreignLyric": "Buddy you're a boy make a big noise",
-        "spanishLyric": "derecho de peticion"
-    })]
-}
-
-for (k) in database:
-    print(k)
+database = {}
 
 
-"""class lyricsDB(Base):
-    __tablename__ = "lyrics"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    artist = Column(String)
-    song = Column(String)
-    foreignLyric = Column(String)
-    spanishLyric = Column(String)
+def search_in_database(newlyric: lyricsDB):
+    artist_name = newlyric.artist.lower()
+    song_name = newlyric.song.lower()
+    if artist_name in database.keys():
+        for each_song in database[artist_name]:
+            if each_song.song == song_name:
+                return each_song.spanishLyric
+    return None
 
 
-Base.metadata.create_all(bind=engine)"""
+def include_new(newlyric: lyricsDB):
+    artist_name = newlyric.artist.lower()
+    if artist_name in database.keys():
+        database[artist_name].append(newlyric)
+    else:
+        database[artist_name] = [newlyric]
